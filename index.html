@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NyanHappi12 — Odliczanie do Wydarzeń — 2026</title>
+
+  <!-- Google Fonts: główne + trzy odmienne do liczników -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Luckiest+Guy&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rubik+Mono+One&family=Major+Mono+Display&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#071225;
+      --card:rgba(255,255,255,0.95);
+      --muted:#9aa4b2;
+      --accent-1:#ff6fb5;
+      --accent-2:#7c4dff;
+      --glass: rgba(255,255,255,0.06);
+    }
+    [data-theme="light"]{
+      --bg:#f7fbf8;
+      --card:#ffffff;
+      --muted:#55606a;
+      --glass: rgba(0,0,0,0.04);
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0; font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background: linear-gradient(180deg,#071225 0%, #021017 100%);
+      color: #fff;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    [data-theme="light"] body{
+      background: linear-gradient(180deg,#f8fafc 0%, #ffffff 100%);
+      color:#0b1220;
+    }
+
+    /* festive subtle snow overlay */
+    .snow-wrap{pointer-events:none; position:fixed; inset:0; z-index:5; opacity:0.08}
+    @keyframes fall{ 0%{transform:translateY(-15vh)} 100%{transform:translateY(110vh)} }
+    .snow{position:absolute;width:6px;height:6px;background:rgba(255,255,255,0.95);border-radius:999px;animation:fall linear infinite}
+
+    /* Topbar */
+    .topbar{
+      position:fixed; left:20px; right:20px; top:16px; z-index:40;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .brand{display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit}
+    .brand img{width:56px;height:56px;border-radius:999px;object-fit:cover; border:2px solid rgba(255,255,255,0.06)}
+    .brand .title{font-weight:700; font-size:20px}
+    .brand .logo-small{font-family:"Luckiest Guy"; font-size:22px; margin-left:4px}
+
+    /* menu button */
+    .menu-btn{ width:48px;height:48px; display:grid; place-items:center; border-radius:999px;
+      background:rgba(255,255,255,0.08); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.08);
+      cursor:pointer; color:#fff; transition: transform .15s ease, color .25s, background .25s; }
+    [data-theme="light"] .menu-btn{ color:#0b1220; background:rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.08) }
+    .menu-btn:hover{ transform:scale(1.05) }
+
+    /* drawer / navigation */
+    .drawer-wrap{position:fixed; inset:0; z-index:60; pointer-events:none}
+    .drawer-backdrop{position:absolute; inset:0; background:rgba(2,6,23,0.45); opacity:0; transition:opacity 420ms ease; pointer-events:none}
+    .drawer{position:fixed; left:0; top:0; height:100%; width:360px; max-width:85%; padding:22px;
+      transform:translateX(-110%); transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 300ms ease;
+      backdrop-filter: blur(8px); border-right:1px solid rgba(255,255,255,0.04);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); pointer-events:auto; color:inherit; }
+    .drawer-wrap.open .drawer{ transform:translateX(0); opacity:1; }
+    .drawer-wrap.open .drawer-backdrop{ opacity:1; pointer-events:auto }
+
+    .drawer .close{position:absolute; right:12px; top:12px; width:36px;height:36px;border-radius:999px; display:grid;place-items:center; cursor:pointer}
+    .drawer nav a{display:flex; gap:10px; align-items:center; padding:10px;border-radius:8px; color:inherit; text-decoration:none; margin-bottom:6px}
+    .drawer nav a:hover{background:rgba(255,255,255,0.03)}
+
+    /* hero */
+    .hero {min-height:36vh; display:flex; align-items:center; justify-content:center; padding:92px 20px 40px 20px; background-size:cover; background-position:center}
+    .hero .card{max-width:980px; width:100%; padding:26px; border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); text-align:center; backdrop-filter: blur(6px)}
+    [data-theme="light"] .hero .card{ background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9)); }
+    .hero h1{font-family:"Luckiest Guy"; font-size:38px; margin:0 0 8px}
+    .hero p{margin:0; opacity:0.95; font-size:16px}
+
+    /* content frame */
+    .content{
+      max-width:1100px; margin:-36px auto 80px; background:var(--card); border-radius:20px; padding:28px;
+      box-shadow: 0 12px 40px rgba(2,6,23,0.6); color:inherit;
+      border:1px solid rgba(255,255,255,0.06); transition: background .28s, border-color .28s, box-shadow .28s;
+    }
+    [data-theme="light"] .content{ border:1px solid rgba(0,0,0,0.08); box-shadow:0 8px 30px rgba(2,6,23,0.06) }
+
+    /* grid of countdowns */
+    .counters{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; align-items:stretch; margin-top:12px }
+    @media (max-width:900px){ .counters{ grid-template-columns:1fr } }
+
+    .counter-card{
+      border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    .counter-card h3{margin:0; font-size:18px}
+    .counter-desc{ color:var(--muted); font-size:14px }
+
+    /* counter digits area */
+    .digits{ display:flex; gap:12px; margin-top:12px; align-items:center; flex-wrap:wrap }
+    .digit{
+      min-width:84px; padding:14px 10px; border-radius:12px; text-align:center;
+      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 8px 20px rgba(2,6,23,0.2);
+    }
+    .digit .num{ font-size:28px; font-weight:700; display:block; line-height:1; transition: transform .18s ease, opacity .18s ease; }
+    .digit .lbl{ font-size:12px; color:var(--muted); margin-top:6px; display:block }
+
+    /* fonts for each counter (distinct) */
+    .counter-newyear .num{ font-family:"Orbitron",sans-serif; }
+    .counter-vac .num{ font-family:"Rubik Mono One",sans-serif; }
+    .counter-birthday .num{ font-family:"Major Mono Display",monospace; }
+    .counter-vacend .num{ font-family:"Orbitron",sans-serif; }
+
+    /* animation when value updates */
+    .num.updated{ transform: scale(1.08); opacity:0.88; }
+    .small-note{ font-size:13px; color:var(--muted) }
+
+    /* CTA and sticky countdown to next episode (same as other pages) */
+    .cta{display:inline-block;padding:12px 18px;border-radius:999px;font-weight:600;text-decoration:none}
+    .cta.gradient{ background: linear-gradient(90deg,var(--accent-1),var(--accent-2)); color:white }
+
+    .countdown{ position:fixed; right:18px; bottom:18px; z-index:60; width:220px; border-radius:14px; padding:12px;
+       background:rgba(255,255,255,0.07); backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,0.06); text-align:center }
+    [data-theme="light"] .countdown{ background:rgba(0,0,0,0.04) }
+    .countdown .time{ font-family:monospace; font-size:20px; margin-top:6px }
+
+    footer{ text-align:center; color:var(--muted); padding:30px 12px; font-size:13px }
+
+    .material-symbols-rounded{ font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; font-size:22px; line-height:1 }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- SNOW overlay -->
+  <div class="snow-wrap" aria-hidden="true">
+    <div class="snow" style="left:5%; animation-duration:12s;"></div>
+    <div class="snow" style="left:22%; animation-duration:10s; animation-delay:1s;"></div>
+    <div class="snow" style="left:40%; animation-duration:14s; animation-delay:.6s;"></div>
+    <div class="snow" style="left:58%; animation-duration:9s; animation-delay:2.2s;"></div>
+    <div class="snow" style="left:76%; animation-duration:11s; animation-delay:.2s;"></div>
+  </div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a id="home-link" class="brand" href="/-/index.html" title="NyanHappi12 — Strona główna">
+      <img id="logo-img" src="https://nyanhappi12.github.io/site_files/Copilot_20251213_004258_11zon (1).png" alt="logo">
+      <div>
+        <div class="title">NyanHappi12 <span class="logo-small">☆</span></div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px">Odliczania & Wydarzenia</div>
+      </div>
+    </a>
+
+    <div style="display:flex; gap:10px; align-items:center">
+      <button id="menu-open" class="menu-btn" aria-label="Otwórz menu" title="Menu">
+        <svg width="18" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- DRAWER -->
+  <div id="drawerWrap" class="drawer-wrap" aria-hidden="true">
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-label="Nawigacja">
+      <button id="drawerClose" class="close" aria-label="Zamknij"><strong>✕</strong></button>
+
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px">
+        <img id="drawer-logo" src="https://nyanhappi12.neocities.org/site_files/Copilot_20251213_004258_11zon (1).png" style="width:56px;height:56px;border-radius:999px;object-fit:cover">
+        <div>
+          <div style="font-weight:700">NyanHappi12</div>
+          <div style="font-size:12px;color:var(--muted)">Witaj! wybierz stronę</div>
+        </div>
+      </div>
+
+      <nav>
+        <a href="/filmy/"><span class="material-symbols-rounded">smart_display</span>Najnowsze Filmy</a>
+        <a href="/galeria/"><span class="material-symbols-rounded">photo_library</span>Galeria Obrazów</a>
+        <a href="/wydarzenia/"><span class="material-symbols-rounded">schedule</span>Odliczanie Do Wydarzeń</a>
+        <a href="/posty/"><span class="material-symbols-rounded">article</span>Posty</a>
+        <a id="account-link" href="/login/"><span class="material-symbols-rounded">account_circle</span>Konto</a>
+        <a href="/informacje-kontaktowe/"><span class="material-symbols-rounded">contact_mail</span>Informacje & Kontakt</a>
+      </nav>
+
+      <div style="margin-top:18px; font-size:13px; color:var(--muted)">Motyw:</div>
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <button id="theme-light" class="cta" style="padding:8px 10px">Jasny</button>
+        <button id="theme-dark" class="cta gradient" style="padding:8px 10px">Ciemny</button>
+      </div>
+
+      <div style="margin-top:14px; font-size:12px; color:var(--muted)">Motyw zapisany lokalnie; jeśli jesteś zalogowany, zostanie zapisany do Firestore.</div>
+    </aside>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+    <section id="hero" class="hero" style="background-image:url('https://via.placeholder.com/1600x600?text=Wydarzenia')">
+      <div class="card">
+        <h1>Odliczania — specjalne wydarzenia</h1>
+        <p>Pięknie animowane, stylowe liczniki — wszystko w motywie NyanHappi12 (2026).</p>
+      </div>
+    </section>
+
+    <section class="content">
+      <h2 style="margin:0 0 12px">Nadchodzące wydarzenia</h2>
+      <p style="margin:0 0 16px; color:var(--muted)">Każdy licznik liczy w Twojej lokalnej strefie czasowej (Polska). Podanymi datami są:</p>
+
+      <div class="counters">
+        <!-- New Year -->
+        <div class="counter-card counter-newyear">
+          <h3>Nowy Rok 2027</h3>
+          <div class="counter-desc">Liczymy do 1 stycznia 2027, 00:00:00 (czas lokalny — Polska)</div>
+          <div class="digits" aria-hidden="false" data-target="newyear">
+            <div class="digit"><span class="num" id="ny-days">--</span><span class="lbl">dni</span></div>
+            <div class="digit"><span class="num" id="ny-hours">--</span><span class="lbl">godz</span></div>
+            <div class="digit"><span class="num" id="ny-min">--</span><span class="lbl">min</span></div>
+            <div class="digit"><span class="num" id="ny-sec">--</span><span class="lbl">sek</span></div>
+          </div>
+          <div class="small-note">Czcionka liczb: Orbitron</div>
+        </div>
+
+        <!-- Vac start -->
+        <div class="counter-card counter-vac">
+          <h3>Start wakacji (przykładowo)</h3>
+          <div class="counter-desc">Liczymy do 26 czerwca 2026, 09:00:00 (czas lokalny — Polska)</div>
+          <div class="digits" data-target="vacstart">
+            <div class="digit"><span class="num" id="v-days">--</span><span class="lbl">dni</span></div>
+            <div class="digit"><span class="num" id="v-hours">--</span><span class="lbl">godz</span></div>
+            <div class="digit"><span class="num" id="v-min">--</span><span class="lbl">min</span></div>
+            <div class="digit"><span class="num" id="v-sec">--</span><span class="lbl">sek</span></div>
+          </div>
+          <div class="small-note">Czcionka liczb: Rubik Mono One</div>
+        </div>
+
+        <!-- Vac end -->
+        <div class="counter-card counter-vacend">
+          <h3>Koniec wakacji</h3>
+          <div class="counter-desc">Liczymy do 1 września 2026, 09:00:00 (czas lokalny — Polska)</div>
+          <div class="digits" data-target="vacend">
+            <div class="digit"><span class="num" id="ve-days">--</span><span class="lbl">dni</span></div>
+            <div class="digit"><span class="num" id="ve-hours">--</span><span class="lbl">godz</span></div>
+            <div class="digit"><span class="num" id="ve-min">--</span><span class="lbl">min</span></div>
+            <div class="digit"><span class="num" id="ve-sec">--</span><span class="lbl">sek</span></div>
+          </div>
+          <div class="small-note">Czcionka liczb: Orbitron</div>
+        </div>
+
+        <!-- Birthday -->
+        <div class="counter-card counter-birthday">
+          <h3>Urodziny</h3>
+          <div class="counter-desc">Liczymy do 15 stycznia 2027, 16:10:00 (czas lokalny — Polska)</div>
+          <div class="digits" data-target="bday">
+            <div class="digit"><span class="num" id="b-days">--</span><span class="lbl">dni</span></div>
+            <div class="digit"><span class="num" id="b-hours">--</span><span class="lbl">godz</span></div>
+            <div class="digit"><span class="num" id="b-min">--</span><span class="lbl">min</span></div>
+            <div class="digit"><span class="num" id="b-sec">--</span><span class="lbl">sek</span></div>
+          </div>
+          <div class="small-note">Czcionka liczb: Major Mono Display</div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px">
+        <a href="/index.html" class="cta">Wróć do strony głównej</a>
+        <a href="/filmy/" class="cta gradient" style="margin-left:10px">Zobacz filmy</a>
+      </div>
+    </section>
+
+    <footer>
+      <div>© 2026 NyanHappi12 — wszelkie prawa zastrzeżone.</div>
+      <div style="margin-top:6px; font-size:12px">Motyw: <span id="footer-theme">ciemny</span></div>
+    </footer>
+  </main>
+
+  <!-- STICKY COUNTDOWN bottom-right (daily 21:00) -->
+  <div id="sticky-countdown" class="countdown" role="status" aria-live="polite">
+    <div style="font-size:12px;font-weight:600">Do następnego odcinka zostało:</div>
+    <div id="sticky-value" class="time">--:--:--</div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script type="module">
+    /***** CONFIG (Firebase + YouTube kept same as other pages) *****/
+    const CONFIG = {
+      FIREBASE: {
+        apiKey: "AIzaSyA6B1a0I1m7hXPwblW8diKsW1nnDVmGEP0",
+        authDomain: "nyanhappi12.firebaseapp.com",
+        projectId: "nyanhappi12",
+        storageBucket: "nyanhappi12.firebasestorage.app",
+        messagingSenderId: "197042141276",
+        appId: "1:197042141276:web:d9f1c73f569f9180a40e99",
+        measurementId: "G-RW1PDZR1X5"
+      }
+    };
+
+    // Firebase imports (for account display & saving theme as on other pages)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+    const firebaseApp = initializeApp(CONFIG.FIREBASE);
+    try{ getAnalytics(firebaseApp); }catch(e){}
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
+    const provider = new GoogleAuthProvider();
+
+    /* ---------- DOM refs ---------- */
+    const drawerWrap = document.getElementById('drawerWrap');
+    const menuOpen = document.getElementById('menu-open');
+    const drawerClose = document.getElementById('drawerClose');
+    const drawerBackdrop = document.getElementById('drawerBackdrop');
+    const accountLink = document.getElementById('account-link');
+    const footerTheme = document.getElementById('footer-theme');
+    const themeLightBtn = document.getElementById('theme-light');
+    const themeDarkBtn = document.getElementById('theme-dark');
+    const stickyValue = document.getElementById('sticky-value');
+
+    /* ---------- THEME (apply to html + body) ---------- */
+    const THEME_KEY = 'nh_theme';
+    function applyTheme(theme, persistToFirestore = true){
+      const t = theme === 'light' ? 'light' : 'dark';
+      try{ document.documentElement.setAttribute('data-theme', t); }catch(e){}
+      try{ document.body.setAttribute('data-theme', t); }catch(e){}
+      if(footerTheme) footerTheme.textContent = t === 'light' ? 'jasny' : 'ciemny';
+      try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+      // if logged in, persist to Firestore
+      if(persistToFirestore && accountDoc && accountDoc.id){
+        try{ setDoc(doc(db,'accounts', accountDoc.id), { theme: t }, { merge: true }).catch(()=>{}); }catch(e){}
+      }
+    }
+    const saved = (()=>{ try{ return localStorage.getItem(THEME_KEY) }catch(e){return null} })() || 'dark';
+    applyTheme(saved, false);
+    if(themeLightBtn) themeLightBtn.onclick = ()=>applyTheme('light');
+    if(themeDarkBtn) themeDarkBtn.onclick = ()=>applyTheme('dark');
+
+    /* ---------- DRAWER with smooth close (click outside) ---------- */
+    function removeGlobalDrawerListeners(){
+      document.removeEventListener('pointerdown', outsideDrawerHandler);
+      document.removeEventListener('touchstart', outsideDrawerHandler);
+      document.removeEventListener('keydown', escCloseHandler);
+    }
+    function openDrawer(){
+      if(!drawerWrap) return;
+      drawerWrap.classList.add('open');
+      drawerWrap.setAttribute('aria-hidden','false');
+      setTimeout(()=>{
+        document.addEventListener('pointerdown', outsideDrawerHandler);
+        document.addEventListener('touchstart', outsideDrawerHandler);
+        document.addEventListener('keydown', escCloseHandler);
+      },0);
+    }
+    function closeDrawer(){
+      if(!drawerWrap) return;
+      const drawerEl = drawerWrap.querySelector('.drawer');
+      drawerWrap.classList.remove('open');
+      let cleaned = false;
+      function cleanUpAfterClose(){
+        if(cleaned) return;
+        cleaned = true;
+        drawerWrap.setAttribute('aria-hidden','true');
+        removeGlobalDrawerListeners();
+        if(drawerEl) drawerEl.removeEventListener('transitionend', onTransitionEnd);
+      }
+      function onTransitionEnd(e){
+        if(e.target === drawerEl) cleanUpAfterClose();
+      }
+      if(drawerEl) drawerEl.addEventListener('transitionend', onTransitionEnd);
+      setTimeout(cleanUpAfterClose, 900);
+    }
+    function escCloseHandler(e){ if(e.key === 'Escape' || e.key === 'Esc') closeDrawer(); }
+    function outsideDrawerHandler(e){
+      if(!drawerWrap || !drawerWrap.classList.contains('open')) return;
+      const drawerEl = drawerWrap.querySelector('.drawer');
+      const path = e.composedPath ? e.composedPath() : (e.path || []);
+      const target = path && path.length ? path[0] : e.target;
+      if(drawerEl && drawerEl.contains(target)) return;
+      if(menuOpen && menuOpen.contains(target)) return;
+      let el = target;
+      while(el){
+        if(el.nodeType===1 && el.hasAttribute && el.hasAttribute('data-no-close')) return;
+        el = el.parentElement;
+      }
+      closeDrawer();
+    }
+    menuOpen?.addEventListener('click', (ev)=>{ ev.stopPropagation(); openDrawer(); });
+    drawerClose?.addEventListener('click', (ev)=>{ ev.stopPropagation(); closeDrawer(); });
+    drawerBackdrop?.addEventListener('click', (ev)=>{ ev.stopPropagation(); closeDrawer(); });
+
+    /* ---------- AUTH handlers (account label) ---------- */
+    let accountDoc = null;
+    onAuthStateChanged(auth, async (user)=>{
+      if(user){
+        const docRef = doc(db,'accounts', user.uid);
+        try{
+          const snap = await getDoc(docRef);
+          if(!snap.exists()){
+            await setDoc(docRef, { display_name: user.displayName || user.email || 'Użytkownik', createdAt: new Date().toISOString() });
+            accountDoc = { display_name: user.displayName || user.email || 'Użytkownik', id: user.uid };
+          } else {
+            accountDoc = { id: snap.id, ...snap.data() };
+          }
+          if(accountLink){ accountLink.innerHTML = `<span class="material-symbols-rounded">account_circle</span>${accountDoc.display_name || 'Konto'}`; accountLink.href=`/konto/${accountDoc.id}`; }
+          try{ if(accountDoc && accountDoc.theme) applyTheme(accountDoc.theme, false); }catch(e){}
+          try{ const u = new URL(window.location.href); u.searchParams.set('session_id', accountDoc.id); window.history.replaceState({}, '', u.toString()); }catch(e){}
+        }catch(e){ console.error(e) }
+      } else {
+        accountDoc = null;
+        if(accountLink){ accountLink.innerHTML = `<span class="material-symbols-rounded">account_circle</span>Konto`; accountLink.href = '/login/'; }
+        try{ const u = new URL(window.location.href); u.searchParams.delete('session_id'); window.history.replaceState({}, '', u.toString()); }catch(e){}
+      }
+    });
+    accountLink?.addEventListener('click', async (e)=>{
+      const user = auth.currentUser;
+      if(!user){ e.preventDefault(); try{ await signInWithPopup(auth, provider); }catch(err){ alert('Błąd logowania: ' + (err && err.message || err)); } }
+    });
+    accountLink?.addEventListener('contextmenu', async (ev)=>{ ev.preventDefault(); if(confirm('Wylogować?')){ await signOut(auth); alert('Wylogowano'); } });
+
+    /* ---------- Countdown helpers ---------- */
+    function formatTwo(n){ return String(n).padStart(2,'0'); }
+    function animateElem(el){
+      if(!el) return;
+      el.classList.add('updated');
+      setTimeout(()=> el.classList.remove('updated'), 180);
+    }
+
+    // create targets in local timezone by year,monthIndex,day,hour,min,sec (monthIndex 0-11)
+    function makeLocalDate(year, monthIndex, day, hour=0, minute=0, second=0){
+      return new Date(year, monthIndex, day, hour, minute, second);
+    }
+
+    // targets:
+    const targets = {
+      newyear: makeLocalDate(2027, 0, 1, 0, 0, 0),       // 2027-01-01 00:00 local
+      vacstart: makeLocalDate(2026, 5, 26, 9, 0, 0),     // 2026-06-26 09:00 local
+      vacend: makeLocalDate(2026, 8, 1, 9, 0, 0),        // 2026-09-01 09:00 local
+      bday: makeLocalDate(2027, 0, 15, 16, 10, 0)        // 2027-01-15 16:10 local
+    };
+
+    function updateCounter(prefix, targetDate){
+      const now = new Date();
+      const diff = targetDate - now;
+      const daysEl = document.getElementById(prefix + '-days');
+      const hoursEl = document.getElementById(prefix + '-hours');
+      const minsEl = document.getElementById(prefix + '-min');
+      const secsEl = document.getElementById(prefix + '-sec');
+      if(diff <= 0){
+        if(daysEl) daysEl.textContent = '00';
+        if(hoursEl) hoursEl.textContent = '00';
+        if(minsEl) minsEl.textContent = '00';
+        if(secsEl) secsEl.textContent = '00';
+        return;
+      }
+      const totalSec = Math.floor(diff/1000);
+      const days = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      const secs = totalSec % 60;
+
+      if(daysEl && daysEl.textContent !== String(days)) { daysEl.textContent = String(days); animateElem(daysEl); }
+      if(hoursEl && hoursEl.textContent !== formatTwo(hours)) { hoursEl.textContent = formatTwo(hours); animateElem(hoursEl); }
+      if(minsEl && minsEl.textContent !== formatTwo(mins)) { minsEl.textContent = formatTwo(mins); animateElem(minsEl); }
+      if(secsEl && secsEl.textContent !== formatTwo(secs)) { secsEl.textContent = formatTwo(secs); animateElem(secsEl); }
+    }
+
+    // initialize and tick every second
+    function startAllCounters(){
+      updateCounter('ny', targets.newyear); // ny -> ids use ny- prefix for newyear
+      // but our element ids are ny-*, v-*, ve-*, b-*
+      // call properly:
+      function tick(){
+        updateCounter('ny', targets.newyear);
+        // v- for vacstart
+        (function(){
+          const now = new Date();
+          const diff = targets.vacstart - now;
+          const daysEl = document.getElementById('v-days');
+          const hoursEl = document.getElementById('v-hours');
+          const minsEl = document.getElementById('v-min');
+          const secsEl = document.getElementById('v-sec');
+          if(diff <= 0){ if(daysEl) daysEl.textContent='00'; if(hoursEl) hoursEl.textContent='00'; if(minsEl) minsEl.textContent='00'; if(secsEl) secsEl.textContent='00'; }
+          else{
+            const tS = Math.floor(diff/1000);
+            const days = Math.floor(tS/86400);
+            const hours = Math.floor((tS%86400)/3600);
+            const mins = Math.floor((tS%3600)/60);
+            const secs = tS%60;
+            if(daysEl && daysEl.textContent !== String(days)){ daysEl.textContent=String(days); animateElem(daysEl); }
+            if(hoursEl && hoursEl.textContent !== formatTwo(hours)){ hoursEl.textContent=formatTwo(hours); animateElem(hoursEl); }
+            if(minsEl && minsEl.textContent !== formatTwo(mins)){ minsEl.textContent=formatTwo(mins); animateElem(minsEl); }
+            if(secsEl && secsEl.textContent !== formatTwo(secs)){ secsEl.textContent=formatTwo(secs); animateElem(secsEl); }
+          }
+        })();
+
+        // vac end (ve-)
+        (function(){
+          const now = new Date();
+          const diff = targets.vacend - now;
+          const daysEl = document.getElementById('ve-days');
+          const hoursEl = document.getElementById('ve-hours');
+          const minsEl = document.getElementById('ve-min');
+          const secsEl = document.getElementById('ve-sec');
+          if(diff <= 0){ if(daysEl) daysEl.textContent='00'; if(hoursEl) hoursEl.textContent='00'; if(minsEl) minsEl.textContent='00'; if(secsEl) secsEl.textContent='00'; }
+          else{
+            const tS = Math.floor(diff/1000);
+            const days = Math.floor(tS/86400);
+            const hours = Math.floor((tS%86400)/3600);
+            const mins = Math.floor((tS%3600)/60);
+            const secs = tS%60;
+            if(daysEl && daysEl.textContent !== String(days)){ daysEl.textContent=String(days); animateElem(daysEl); }
+            if(hoursEl && hoursEl.textContent !== formatTwo(hours)){ hoursEl.textContent=formatTwo(hours); animateElem(hoursEl); }
+            if(minsEl && minsEl.textContent !== formatTwo(mins)){ minsEl.textContent=formatTwo(mins); animateElem(minsEl); }
+            if(secsEl && secsEl.textContent !== formatTwo(secs)){ secsEl.textContent=formatTwo(secs); animateElem(secsEl); }
+          }
+        })();
+
+        // birthday (b-)
+        (function(){
+          const now = new Date();
+          const diff = targets.bday - now;
+          const daysEl = document.getElementById('b-days');
+          const hoursEl = document.getElementById('b-hours');
+          const minsEl = document.getElementById('b-min');
+          const secsEl = document.getElementById('b-sec');
+          if(diff <= 0){ if(daysEl) daysEl.textContent='00'; if(hoursEl) hoursEl.textContent='00'; if(minsEl) minsEl.textContent='00'; if(secsEl) secsEl.textContent='00'; }
+          else{
+            const tS = Math.floor(diff/1000);
+            const days = Math.floor(tS/86400);
+            const hours = Math.floor((tS%86400)/3600);
+            const mins = Math.floor((tS%3600)/60);
+            const secs = tS%60;
+            if(daysEl && daysEl.textContent !== String(days)){ daysEl.textContent=String(days); animateElem(daysEl); }
+            if(hoursEl && hoursEl.textContent !== formatTwo(hours)){ hoursEl.textContent=formatTwo(hours); animateElem(hoursEl); }
+            if(minsEl && minsEl.textContent !== formatTwo(mins)){ minsEl.textContent=formatTwo(mins); animateElem(minsEl); }
+            if(secsEl && secsEl.textContent !== formatTwo(secs)){ secsEl.textContent=formatTwo(secs); animateElem(secsEl); }
+          }
+        })();
+      }
+
+      // one immediate tick then interval
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // start counters
+    startAllCounters();
+
+    /* ---------- sticky next-episode countdown daily 21:00 local ---------- */
+    (function stickyCountdown(){
+      function next21(){
+        const now = new Date();
+        const nxt = new Date(now);
+        nxt.setHours(21,0,0,0);
+        if(nxt <= now) nxt.setDate(nxt.getDate()+1);
+        return nxt;
+      }
+      function upd(){
+        const t = next21() - Date.now();
+        if(t<=0){ stickyValue.textContent='00:00:00'; return; }
+        const h = Math.floor(t/3600000);
+        const m = Math.floor((t%3600000)/60000);
+        const s = Math.floor((t%60000)/1000);
+        stickyValue.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      }
+      upd(); setInterval(upd,1000);
+    })();
+
+    /* ---------- Accessibility note: prevent accidental text-selection on counters ---------- */
+    document.querySelectorAll('.digits, .digit, .num').forEach(el=>{
+      el.style.userSelect = 'none';
+      el.style.webkitUserSelect = 'none';
+    });
+
+    /* ---------- done ---------- */
+  </script>
+</body>
+</html>
